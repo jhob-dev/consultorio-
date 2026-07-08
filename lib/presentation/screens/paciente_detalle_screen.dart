@@ -58,6 +58,13 @@ class _PacienteDetalleScreenState extends State<PacienteDetalleScreen> {
           ),
           actions: [
             IconButton(
+              icon: const Icon(Icons.insert_drive_file),
+              tooltip: 'Reporte paciente',
+              onPressed: () {
+                context.push('/reportes/pacientes/${widget.pacienteId}');
+              },
+            ),
+            IconButton(
               icon: const Icon(Icons.edit),
               tooltip: 'Editar paciente',
               onPressed: () {

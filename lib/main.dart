@@ -3,6 +3,11 @@ import 'package:consultorio/presentation/screens/citas_screen.dart';
 import 'package:consultorio/presentation/screens/paciente_detalle_screen.dart';
 import 'package:consultorio/presentation/screens/paciente_form_screen.dart';
 import 'package:consultorio/presentation/screens/tratamientos_screen.dart';
+import 'package:consultorio/presentation/screens/welcome_screen.dart';
+import 'package:consultorio/presentation/screens/reportes/reportes_screen.dart';
+import 'package:consultorio/presentation/screens/reportes/reporte_pacientes_screen.dart';
+import 'package:consultorio/presentation/screens/reportes/reporte_citas_screen.dart';
+import 'package:consultorio/presentation/screens/reportes/reporte_paciente_detalle_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -32,19 +37,21 @@ class MyApp extends StatelessWidget {
   MyApp({super.key});
 
   final _router = GoRouter(
-  initialLocation: '/login',
-  redirect: (context, state) {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final isLogged = authProvider.isLoggedIn;
-    final isLoginRoute = state.matchedLocation == '/login';
+    initialLocation: '/welcome',
+    redirect: (context, state) {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final isLogged = authProvider.isLoggedIn;
+      final isLoginRoute = state.matchedLocation == '/login';
+      final isWelcomeRoute = state.matchedLocation == '/welcome';
 
-    if (!isLogged && !isLoginRoute) return '/login';
-    if (isLogged && isLoginRoute) return '/home';
-    return null;
-  },
-  routes: [
-    GoRoute(path: '/login', builder: (context, state) => LoginScreen()),
-    GoRoute(path: '/home', builder: (context, state) => const HomeScreen()),
+      if (!isLogged && !isLoginRoute && !isWelcomeRoute) return '/welcome';
+      if (isLogged && (isLoginRoute || isWelcomeRoute)) return '/home';
+      return null;
+    },
+    routes: [
+      GoRoute(path: '/welcome', builder: (context, state) => const WelcomeScreen()),
+      GoRoute(path: '/login', builder: (context, state) => LoginScreen()),
+      GoRoute(path: '/home', builder: (context, state) => const HomeScreen()),
     GoRoute(path: '/pacientes', builder: (context, state) => const ListaPacientesScreen()),
     GoRoute(path: '/pacientes/nuevo', builder: (context, state) => const PacienteFormScreen()),
     GoRoute(
@@ -53,7 +60,7 @@ class MyApp extends StatelessWidget {
         final id = int.parse(state.pathParameters['id']!);
         return PacienteDetalleScreen(pacienteId: id);
       },
-      routes: [
+        routes: [
         GoRoute(
           path: 'nueva-historia',
           builder: (context, state) {
@@ -83,8 +90,13 @@ class MyApp extends StatelessWidget {
     ),
     // Agrega rutas para listar citas y tratamientos si es necesario
     GoRoute(path: '/citas', builder: (context, state) => const CitasScreen()),
-    GoRoute(path: '/tratamientos', builder: (context, state) => const TratamientosScreen()),
-  ],
+    GoRoute(path: '/tratamientos', builder: (context, state) => const TratamientosScreen()),    GoRoute(path: '/reportes', builder: (context, state) => const ReportesScreen()),
+    GoRoute(path: '/reportes/pacientes', builder: (context, state) => const ReportePacientesScreen()),
+    GoRoute(path: '/reportes/citas', builder: (context, state) => const ReporteCitasScreen()),
+    GoRoute(path: '/reportes/pacientes/:id', builder: (context, state) {
+      final id = int.parse(state.pathParameters['id']!);
+      return ReportePacienteDetalleScreen(pacienteId: id);
+    }),  ],
 );
 
   @override

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../providers/paciente_provider.dart';
+import '../../data/models/paciente_model.dart';
 import '../../data/models/tratamiento_model.dart';
 import '../providers/tratamiento_provider.dart';
 import 'package:go_router/go_router.dart';
@@ -25,6 +27,12 @@ class _TratamientoFormScreenState extends State<TratamientoFormScreen> {
     if (widget.pacienteId != null) {
       _pacienteIdCtrl.text = widget.pacienteId.toString();
     }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final pacienteProvider = Provider.of<PacienteProvider>(context, listen: false);
+      if (pacienteProvider.pacientes.isEmpty) {
+        pacienteProvider.cargarPacientes();
+      }
+    });
   }
 
   @override
@@ -37,12 +45,32 @@ class _TratamientoFormScreenState extends State<TratamientoFormScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            TextFormField(
-              controller: _pacienteIdCtrl,
-              decoration: const InputDecoration(labelText: 'ID del Paciente *'),
-              validator: (v) => v!.isEmpty ? 'Requerido' : null,
-              keyboardType: TextInputType.number,
-            ),
+            Consumer<PacienteProvider>(builder: (context, pp, __) {
+              return Autocomplete<Paciente>(
+                optionsBuilder: (TextEditingValue textEditingValue) {
+                  if (textEditingValue.text == '') {
+                    return pp.pacientes;
+                  }
+                  return pp.pacientes.where((Paciente p) {
+                    final q = textEditingValue.text.toLowerCase();
+                    return p.nombresApellido.toLowerCase().contains(q) || (p.ci ?? '').toLowerCase().contains(q) || p.id.toString() == q;
+                  }).toList();
+                },
+                displayStringForOption: (Paciente p) => '${p.nombresApellido} (${p.ci ?? ''})',
+                fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
+                  controller.text = _pacienteIdCtrl.text.isNotEmpty ? _pacienteIdCtrl.text : controller.text;
+                  return TextFormField(
+                    controller: controller,
+                    focusNode: focusNode,
+                    decoration: const InputDecoration(labelText: 'Paciente (nombre o CI) *'),
+                    validator: (v) => v!.isEmpty ? 'Requerido' : null,
+                  );
+                },
+                onSelected: (Paciente selection) {
+                  _pacienteIdCtrl.text = selection.id.toString();
+                },
+              );
+            }),
             TextFormField(
               controller: _actividadCtrl,
               decoration: const InputDecoration(labelText: 'Actividad Clínica *'),

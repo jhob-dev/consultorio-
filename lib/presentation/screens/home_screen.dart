@@ -89,6 +89,14 @@ class HomeScreen extends StatelessWidget {
               context.push('/tratamientos'); // Asegúrate de tener esta ruta
             },
           ),
+          ListTile(
+            leading: const Icon(Icons.pie_chart),
+            title: const Text('Reportes'),
+            onTap: () {
+              Navigator.pop(context);
+              context.push('/reportes');
+            },
+          ),
           const Divider(),
           ListTile(
             leading: const Icon(Icons.logout),
