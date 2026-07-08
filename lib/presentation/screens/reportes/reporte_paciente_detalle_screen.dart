@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../data/models/paciente_model.dart';
 import '../../providers/paciente_provider.dart';
 import '../../providers/cita_provider.dart';
 import '../../providers/historia_provider.dart';
 import '../../providers/tratamiento_provider.dart';
+import 'report_export_service.dart';
 
 class ReportePacienteDetalleScreen extends StatefulWidget {
   final int pacienteId;
@@ -47,7 +49,14 @@ class _ReportePacienteDetalleScreenState extends State<ReportePacienteDetalleScr
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: Image.asset('flutter_03.png', width: double.infinity, height: 180, fit: BoxFit.cover),
+              ),
+              const SizedBox(height: 16),
               _buildPacienteInfo(),
+              const SizedBox(height: 16),
+              _buildExportActions(),
               const SizedBox(height: 16),
               _buildResumenSeccion(),
               const SizedBox(height: 16),
@@ -69,7 +78,33 @@ class _ReportePacienteDetalleScreenState extends State<ReportePacienteDetalleScr
     await Provider.of<HistoriaProvider>(context, listen: false).cargarHistorias(widget.pacienteId);
     await Provider.of<TratamientoProvider>(context, listen: false).cargarTratamientos(pacienteId: widget.pacienteId);
   }
-
+  Widget _buildExportActions() {
+    return Row(
+      children: [
+        Expanded(
+          child: ElevatedButton.icon(
+            icon: const Icon(Icons.table_chart),
+            label: const Text('Exportar Excel'),
+            onPressed: () async {
+              final paciente = Provider.of<PacienteProvider>(context, listen: false).pacienteSeleccionado;
+              if (paciente != null) await _exportExcel(paciente);
+            },
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: ElevatedButton.icon(
+            icon: const Icon(Icons.description),
+            label: const Text('Exportar Word'),
+            onPressed: () async {
+              final paciente = Provider.of<PacienteProvider>(context, listen: false).pacienteSeleccionado;
+              if (paciente != null) await _exportWord(paciente);
+            },
+          ),
+        ),
+      ],
+    );
+  }
   Widget _buildPacienteInfo() {
     return Consumer<PacienteProvider>(builder: (_, provider, __) {
       final paciente = provider.pacienteSeleccionado;
@@ -234,5 +269,31 @@ class _ReportePacienteDetalleScreenState extends State<ReportePacienteDetalleScr
         child,
       ],
     );
+  }
+
+  Future<void> _exportExcel(Paciente paciente) async {
+    final csv = StringBuffer();
+    csv.writeln('Paciente,CI,Género,Fecha de nacimiento,Teléfono,Dirección');
+    csv.writeln(
+      '${ReportExportService.escapeCsv(paciente.nombresApellido)},'
+      '${ReportExportService.escapeCsv(paciente.ci)},'
+      '${ReportExportService.escapeCsv(paciente.genero)},'
+      '${ReportExportService.escapeCsv(paciente.fechaNacimiento.toLocal().toString().split(' ')[0])},'
+      '${ReportExportService.escapeCsv(paciente.telefono ?? '')},'
+      '${ReportExportService.escapeCsv(paciente.direccion ?? '')}'
+    );
+    final file = await ReportExportService.createCsvFile('reporte_paciente_${paciente.id}', csv.toString());
+    await ReportExportService.shareFile(file, 'Reporte del paciente ${paciente.nombresApellido}');
+  }
+
+  Future<void> _exportWord(Paciente paciente) async {
+    final buffer = StringBuffer();
+    buffer.writeln('<div class="section"><h2>Reporte del paciente</h2><table>');
+    buffer.writeln('<tr><th>Paciente</th><th>CI</th><th>Género</th><th>Fecha de nacimiento</th><th>Teléfono</th><th>Dirección</th></tr>');
+    buffer.writeln('<tr><td>${paciente.nombresApellido}</td><td>${paciente.ci}</td><td>${paciente.genero}</td><td>${paciente.fechaNacimiento.toLocal().toString().split(' ')[0]}</td><td>${paciente.telefono ?? ''}</td><td>${paciente.direccion ?? ''}</td></tr>');
+    buffer.writeln('</table></div>');
+    final html = ReportExportService.buildWordHtml('Reporte del paciente', buffer.toString());
+    final file = await ReportExportService.createWordFile('reporte_paciente_${paciente.id}', html);
+    await ReportExportService.shareFile(file, 'Reporte del paciente ${paciente.nombresApellido}');
   }
 }

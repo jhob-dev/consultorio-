@@ -113,7 +113,35 @@ class MyApp extends StatelessWidget {
       child: MaterialApp.router(
         routerConfig: _router,
         title: 'Odontología',
-        theme: ThemeData(primarySwatch: Colors.blue),
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+          brightness: Brightness.light,
+          scaffoldBackgroundColor: const Color(0xFFF4F8FF),
+          appBarTheme: const AppBarTheme(
+            backgroundColor: Color(0xFF1E73BE),
+            foregroundColor: Colors.white,
+            elevation: 2,
+          ),
+          cardTheme: CardThemeData(
+            color: Colors.white,
+            elevation: 3,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          ),
+          elevatedButtonTheme: ElevatedButtonThemeData(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF1E73BE),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+            ),
+          ),
+          inputDecorationTheme: InputDecorationTheme(
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            filled: true,
+            fillColor: Colors.white,
+            contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+          ),
+        ),
       ),
     );
   }

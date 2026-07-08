@@ -39,6 +39,8 @@ dependencies:
   table_calendar: ^3.0.9         # Calendario para citas
   go_router: ^13.0.1             # Navegación con rutas
   image_picker: ^1.0.4           # Para fotos/radiografías (futuro)
+  share_plus: ^9.0.0             # Compartir archivos exportados
+  path_provider: ^2.0.15         # Guardar archivos temporales para exportar
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
@@ -98,3 +100,8 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+  assets:
+    - flutter_01.png
+    - flutter_02.png
+    - flutter_03.png
