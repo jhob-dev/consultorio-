@@ -96,9 +96,19 @@ class _ReportePacientesScreenState extends State<ReportePacientesScreen> {
                 if (index == 1) {
                   return Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(20),
-                      child: Image.asset('flutter_02.png', fit: BoxFit.cover, height: 150, width: double.infinity),
+                    child: Container(
+                      height: 150,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFEDF4FF), Color(0xFFE5F1FF)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                      ),
+                      child: const Center(
+                        child: Icon(Icons.people_alt, size: 64, color: Color(0xFF1E73BE)),
+                      ),
                     ),
                   );
                 }

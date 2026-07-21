@@ -51,9 +51,18 @@ class _ReportePacienteDetalleScreenState extends State<ReportePacienteDetalleScr
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(20),
-                child: Image.asset('flutter_03.png', width: double.infinity, height: 180, fit: BoxFit.cover),
-              ),
-              const SizedBox(height: 16),
+                child: Container(
+                  width: double.infinity,
+                  height: 180,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEAF4FF),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Center(
+                    child: Icon(Icons.description, size: 80, color: Color(0xFF1E73BE)),
+                  ),
+                ),
+              ),              const SizedBox(height: 16),
               _buildPacienteInfo(),
               const SizedBox(height: 16),
               _buildExportActions(),

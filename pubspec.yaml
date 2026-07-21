@@ -102,6 +102,7 @@ flutter:
   # see https://flutter.dev/to/font-from-package
 
   assets:
-    - flutter_01.png
-    - flutter_02.png
-    - flutter_03.png
+    # Report screen images were replaced by native UI components.
+    # - flutter_01.png
+    # - flutter_02.png
+    # - flutter_03.png
