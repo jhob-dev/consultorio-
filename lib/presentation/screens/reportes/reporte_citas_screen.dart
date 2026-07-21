@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../providers/cita_provider.dart';
 import '../../../data/models/cita_model.dart';
 import 'report_export_service.dart';
+import 'report_preview_screen.dart';
 
 class ReporteCitasScreen extends StatefulWidget {
   const ReporteCitasScreen({super.key});
@@ -163,8 +164,32 @@ class _ReporteCitasScreenState extends State<ReporteCitasScreen> {
         '${ReportExportService.escapeCsv(cita.estado)}',
       );
     }
-    final file = await ReportExportService.createCsvFile('reporte_citas', csv.toString());
-    await ReportExportService.shareFile(file, 'Reporte de citas');
+    final content = csv.toString();
+    final file = await ReportExportService.createCsvFile('reporte_citas', content);
+    if (!mounted) return;
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ReportPreviewScreen(
+          title: 'Vista previa CSV',
+          fileName: file.path.split('/').last,
+          content: content,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.save),
+              onPressed: () async {
+                final saved = await ReportExportService.saveFile(file);
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Guardado en: ${saved.path}')),
+                );
+              },
+              tooltip: 'Guardar',
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> _exportWord(List<Cita> citas) async {
@@ -179,8 +204,32 @@ class _ReporteCitasScreenState extends State<ReporteCitasScreen> {
     }
     buffer.writeln('</table></div>');
     final html = ReportExportService.buildWordHtml('Reporte de citas', buffer.toString());
+    final content = html;
     final file = await ReportExportService.createWordFile('reporte_citas', html);
-    await ReportExportService.shareFile(file, 'Reporte de citas');
+    if (!mounted) return;
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ReportPreviewScreen(
+          title: 'Vista previa Word',
+          fileName: file.path.split('/').last,
+          content: content,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.save),
+              onPressed: () async {
+                final saved = await ReportExportService.saveFile(file);
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Guardado en: ${saved.path}')),
+                );
+              },
+              tooltip: 'Guardar',
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildCitaTile(Cita cita) {

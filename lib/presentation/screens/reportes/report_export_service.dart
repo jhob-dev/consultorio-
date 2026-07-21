@@ -9,16 +9,34 @@ class ReportExportService {
     return '"$safeText"';
   }
 
+  static Future<Directory> _getStorageDirectory() async {
+    if (Platform.isAndroid) {
+      final directory = await getExternalStorageDirectory();
+      if (directory != null) return directory;
+    }
+    return await getApplicationDocumentsDirectory();
+  }
+
   static Future<File> createCsvFile(String fileName, String content) async {
-    final tempDir = await getTemporaryDirectory();
-    final file = File('${tempDir.path}/$fileName.csv');
+    final dir = await _getStorageDirectory();
+    final file = File('${dir.path}/$fileName.csv');
     return file.writeAsString(content, flush: true);
   }
 
   static Future<File> createWordFile(String fileName, String htmlContent) async {
-    final tempDir = await getTemporaryDirectory();
-    final file = File('${tempDir.path}/$fileName.doc');
+    final dir = await _getStorageDirectory();
+    final file = File('${dir.path}/$fileName.doc');
     return file.writeAsString(htmlContent, flush: true);
+  }
+
+  static Future<File> saveFile(File file) async {
+    final dir = await _getStorageDirectory();
+    final targetPath = '${dir.path}/${file.uri.pathSegments.last}';
+    final targetFile = File(targetPath);
+    if (file.path != targetFile.path) {
+      return file.copy(targetFile.path);
+    }
+    return file;
   }
 
   static Future<void> shareFile(File file, String subject) async {
