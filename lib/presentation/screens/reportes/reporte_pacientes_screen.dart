@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../providers/paciente_provider.dart';
 import 'report_export_service.dart';
-import 'report_preview_screen.dart';
 
 class ReportePacientesScreen extends StatefulWidget {
   const ReportePacientesScreen({super.key});
@@ -135,76 +134,50 @@ class _ReportePacientesScreenState extends State<ReportePacientesScreen> {
   }
 
   Future<void> _exportExcel(List<dynamic> pacientes) async {
-    final csv = StringBuffer();
-    csv.writeln('Nombre,CI,Género');
-    for (final paciente in pacientes) {
-      csv.writeln(
-        '${ReportExportService.escapeCsv(paciente.nombresApellido ?? '')},'
-        '${ReportExportService.escapeCsv(paciente.ci ?? '')},'
-        '${ReportExportService.escapeCsv(paciente.genero ?? '')}',
+    try {
+      final csv = StringBuffer();
+      csv.writeln('Nombre,CI,Género');
+      for (final paciente in pacientes) {
+        csv.writeln(
+          '${ReportExportService.escapeCsv(paciente.nombresApellido ?? '')},'
+          '${ReportExportService.escapeCsv(paciente.ci ?? '')},'
+          '${ReportExportService.escapeCsv(paciente.genero ?? '')}',
+        );
+      }
+      final content = csv.toString();
+      final file = await ReportExportService.createCsvFile('reporte_pacientes', content);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Reporte guardado en: ${file.path}')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al exportar reporte: $e')),
       );
     }
-    final content = csv.toString();
-    final file = await ReportExportService.createCsvFile('reporte_pacientes', content);
-    if (!mounted) return;
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ReportPreviewScreen(
-          title: 'Vista previa CSV',
-          fileName: file.path.split('/').last,
-          content: content,
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.save),
-              onPressed: () async {
-                final saved = await ReportExportService.saveFile(file);
-                if (!mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Guardado en: ${saved.path}')),
-                );
-              },
-              tooltip: 'Guardar',
-            ),
-          ],
-        ),
-      ),
-    );
   }
 
   Future<void> _exportWord(List<dynamic> pacientes) async {
-    final buffer = StringBuffer();
-    buffer.writeln('<div class="section"><h2>Resumen de pacientes</h2><table>');
-    buffer.writeln('<tr><th>Nombre</th><th>CI</th><th>Género</th></tr>');
-    for (final paciente in pacientes) {
-      buffer.writeln('<tr><td>${paciente.nombresApellido ?? ''}</td><td>${paciente.ci ?? ''}</td><td>${paciente.genero ?? ''}</td></tr>');
+    try {
+      final buffer = StringBuffer();
+      buffer.writeln('<div class="section"><h2>Resumen de pacientes</h2><table>');
+      buffer.writeln('<tr><th>Nombre</th><th>CI</th><th>Género</th></tr>');
+      for (final paciente in pacientes) {
+        buffer.writeln('<tr><td>${paciente.nombresApellido ?? ''}</td><td>${paciente.ci ?? ''}</td><td>${paciente.genero ?? ''}</td></tr>');
+      }
+      buffer.writeln('</table></div>');
+      final html = ReportExportService.buildWordHtml('Reporte general de pacientes', buffer.toString());
+      final file = await ReportExportService.createWordFile('reporte_pacientes', html);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Reporte guardado en: ${file.path}')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al exportar reporte: $e')),
+      );
     }
-    buffer.writeln('</table></div>');
-    final html = ReportExportService.buildWordHtml('Reporte general de pacientes', buffer.toString());
-    final file = await ReportExportService.createWordFile('reporte_pacientes', html);
-    if (!mounted) return;
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ReportPreviewScreen(
-          title: 'Vista previa Word',
-          fileName: file.path.split('/').last,
-          content: html,
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.save),
-              onPressed: () async {
-                final saved = await ReportExportService.saveFile(file);
-                if (!mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Guardado en: ${saved.path}')),
-                );
-              },
-              tooltip: 'Guardar',
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }

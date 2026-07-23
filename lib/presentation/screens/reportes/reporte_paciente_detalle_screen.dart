@@ -281,28 +281,48 @@ class _ReportePacienteDetalleScreenState extends State<ReportePacienteDetalleScr
   }
 
   Future<void> _exportExcel(Paciente paciente) async {
-    final csv = StringBuffer();
-    csv.writeln('Paciente,CI,Género,Fecha de nacimiento,Teléfono,Dirección');
-    csv.writeln(
-      '${ReportExportService.escapeCsv(paciente.nombresApellido)},'
-      '${ReportExportService.escapeCsv(paciente.ci)},'
-      '${ReportExportService.escapeCsv(paciente.genero)},'
-      '${ReportExportService.escapeCsv(paciente.fechaNacimiento.toLocal().toString().split(' ')[0])},'
-      '${ReportExportService.escapeCsv(paciente.telefono ?? '')},'
-      '${ReportExportService.escapeCsv(paciente.direccion ?? '')}'
-    );
-    final file = await ReportExportService.createCsvFile('reporte_paciente_${paciente.id}', csv.toString());
-    await ReportExportService.shareFile(file, 'Reporte del paciente ${paciente.nombresApellido}');
+    try {
+      final csv = StringBuffer();
+      csv.writeln('Paciente,CI,Género,Fecha de nacimiento,Teléfono,Dirección');
+      csv.writeln(
+        '${ReportExportService.escapeCsv(paciente.nombresApellido)},'
+        '${ReportExportService.escapeCsv(paciente.ci)},'
+        '${ReportExportService.escapeCsv(paciente.genero)},'
+        '${ReportExportService.escapeCsv(paciente.fechaNacimiento.toLocal().toString().split(' ')[0])},'
+        '${ReportExportService.escapeCsv(paciente.telefono ?? '')},'
+        '${ReportExportService.escapeCsv(paciente.direccion ?? '')}'
+      );
+      final file = await ReportExportService.createCsvFile('reporte_paciente_${paciente.id}', csv.toString());
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Reporte guardado en: ${file.path}')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al exportar reporte: $e')),
+      );
+    }
   }
 
   Future<void> _exportWord(Paciente paciente) async {
-    final buffer = StringBuffer();
-    buffer.writeln('<div class="section"><h2>Reporte del paciente</h2><table>');
-    buffer.writeln('<tr><th>Paciente</th><th>CI</th><th>Género</th><th>Fecha de nacimiento</th><th>Teléfono</th><th>Dirección</th></tr>');
-    buffer.writeln('<tr><td>${paciente.nombresApellido}</td><td>${paciente.ci}</td><td>${paciente.genero}</td><td>${paciente.fechaNacimiento.toLocal().toString().split(' ')[0]}</td><td>${paciente.telefono ?? ''}</td><td>${paciente.direccion ?? ''}</td></tr>');
-    buffer.writeln('</table></div>');
-    final html = ReportExportService.buildWordHtml('Reporte del paciente', buffer.toString());
-    final file = await ReportExportService.createWordFile('reporte_paciente_${paciente.id}', html);
-    await ReportExportService.shareFile(file, 'Reporte del paciente ${paciente.nombresApellido}');
+    try {
+      final buffer = StringBuffer();
+      buffer.writeln('<div class="section"><h2>Reporte del paciente</h2><table>');
+      buffer.writeln('<tr><th>Paciente</th><th>CI</th><th>Género</th><th>Fecha de nacimiento</th><th>Teléfono</th><th>Dirección</th></tr>');
+      buffer.writeln('<tr><td>${paciente.nombresApellido}</td><td>${paciente.ci}</td><td>${paciente.genero}</td><td>${paciente.fechaNacimiento.toLocal().toString().split(' ')[0]}</td><td>${paciente.telefono ?? ''}</td><td>${paciente.direccion ?? ''}</td></tr>');
+      buffer.writeln('</table></div>');
+      final html = ReportExportService.buildWordHtml('Reporte del paciente', buffer.toString());
+      final file = await ReportExportService.createWordFile('reporte_paciente_${paciente.id}', html);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Reporte guardado en: ${file.path}')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al exportar reporte: $e')),
+      );
+    }
   }
 }

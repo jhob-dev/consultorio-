@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import '../../providers/cita_provider.dart';
 import '../../../data/models/cita_model.dart';
 import 'report_export_service.dart';
-import 'report_preview_screen.dart';
 
 class ReporteCitasScreen extends StatefulWidget {
   const ReporteCitasScreen({super.key});
@@ -150,86 +149,58 @@ class _ReporteCitasScreenState extends State<ReporteCitasScreen> {
   }
 
   Future<void> _exportExcel(List<Cita> citas) async {
-    final csv = StringBuffer();
-    csv.writeln('Paciente,Fecha,Hora,Motivo,Estado');
-    for (final cita in citas) {
-      final fecha = cita.fechaHora.toLocal();
-      final fechaTexto = '${fecha.year}-${fecha.month.toString().padLeft(2, '0')}-${fecha.day.toString().padLeft(2, '0')}';
-      final horaTexto = '${fecha.hour.toString().padLeft(2, '0')}:${fecha.minute.toString().padLeft(2, '0')}';
-      csv.writeln(
-        '${ReportExportService.escapeCsv(cita.pacienteNombre ?? '')},'
-        '${ReportExportService.escapeCsv(fechaTexto)},'
-        '${ReportExportService.escapeCsv(horaTexto)},'
-        '${ReportExportService.escapeCsv(cita.motivo ?? '')},'
-        '${ReportExportService.escapeCsv(cita.estado)}',
+    try {
+      final csv = StringBuffer();
+      csv.writeln('Paciente,Fecha,Hora,Motivo,Estado');
+      for (final cita in citas) {
+        final fecha = cita.fechaHora.toLocal();
+        final fechaTexto = '${fecha.year}-${fecha.month.toString().padLeft(2, '0')}-${fecha.day.toString().padLeft(2, '0')}';
+        final horaTexto = '${fecha.hour.toString().padLeft(2, '0')}:${fecha.minute.toString().padLeft(2, '0')}';
+        csv.writeln(
+          '${ReportExportService.escapeCsv(cita.pacienteNombre ?? '')},'
+          '${ReportExportService.escapeCsv(fechaTexto)},'
+          '${ReportExportService.escapeCsv(horaTexto)},'
+          '${ReportExportService.escapeCsv(cita.motivo ?? '')},'
+          '${ReportExportService.escapeCsv(cita.estado)}',
+        );
+      }
+      final file = await ReportExportService.createCsvFile('reporte_citas', csv.toString());
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Reporte guardado en: ${file.path}')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al exportar reporte: $e')),
       );
     }
-    final content = csv.toString();
-    final file = await ReportExportService.createCsvFile('reporte_citas', content);
-    if (!mounted) return;
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ReportPreviewScreen(
-          title: 'Vista previa CSV',
-          fileName: file.path.split('/').last,
-          content: content,
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.save),
-              onPressed: () async {
-                final saved = await ReportExportService.saveFile(file);
-                if (!mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Guardado en: ${saved.path}')),
-                );
-              },
-              tooltip: 'Guardar',
-            ),
-          ],
-        ),
-      ),
-    );
   }
 
   Future<void> _exportWord(List<Cita> citas) async {
-    final buffer = StringBuffer();
-    buffer.writeln('<div class="section"><h2>Resumen de citas</h2><table>');
-    buffer.writeln('<tr><th>Paciente</th><th>Fecha</th><th>Hora</th><th>Motivo</th><th>Estado</th></tr>');
-    for (final cita in citas) {
-      final fecha = cita.fechaHora.toLocal();
-      final fechaTexto = '${fecha.year}-${fecha.month.toString().padLeft(2, '0')}-${fecha.day.toString().padLeft(2, '0')}';
-      final horaTexto = '${fecha.hour.toString().padLeft(2, '0')}:${fecha.minute.toString().padLeft(2, '0')}';
-      buffer.writeln('<tr><td>${cita.pacienteNombre ?? ''}</td><td>$fechaTexto</td><td>$horaTexto</td><td>${cita.motivo ?? ''}</td><td>${cita.estado}</td></tr>');
+    try {
+      final buffer = StringBuffer();
+      buffer.writeln('<div class="section"><h2>Resumen de citas</h2><table>');
+      buffer.writeln('<tr><th>Paciente</th><th>Fecha</th><th>Hora</th><th>Motivo</th><th>Estado</th></tr>');
+      for (final cita in citas) {
+        final fecha = cita.fechaHora.toLocal();
+        final fechaTexto = '${fecha.year}-${fecha.month.toString().padLeft(2, '0')}-${fecha.day.toString().padLeft(2, '0')}';
+        final horaTexto = '${fecha.hour.toString().padLeft(2, '0')}:${fecha.minute.toString().padLeft(2, '0')}';
+        buffer.writeln('<tr><td>${cita.pacienteNombre ?? ''}</td><td>$fechaTexto</td><td>$horaTexto</td><td>${cita.motivo ?? ''}</td><td>${cita.estado}</td></tr>');
+      }
+      buffer.writeln('</table></div>');
+      final html = ReportExportService.buildWordHtml('Reporte de citas', buffer.toString());
+      final file = await ReportExportService.createWordFile('reporte_citas', html);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Reporte guardado en: ${file.path}')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al exportar reporte: $e')),
+      );
     }
-    buffer.writeln('</table></div>');
-    final html = ReportExportService.buildWordHtml('Reporte de citas', buffer.toString());
-    final content = html;
-    final file = await ReportExportService.createWordFile('reporte_citas', html);
-    if (!mounted) return;
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ReportPreviewScreen(
-          title: 'Vista previa Word',
-          fileName: file.path.split('/').last,
-          content: content,
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.save),
-              onPressed: () async {
-                final saved = await ReportExportService.saveFile(file);
-                if (!mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Guardado en: ${saved.path}')),
-                );
-              },
-              tooltip: 'Guardar',
-            ),
-          ],
-        ),
-      ),
-    );
   }
 
   Widget _buildCitaTile(Cita cita) {

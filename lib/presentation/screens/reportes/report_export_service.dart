@@ -17,14 +17,20 @@ class ReportExportService {
     return await getApplicationDocumentsDirectory();
   }
 
-  static Future<File> createCsvFile(String fileName, String content) async {
-    final dir = await _getStorageDirectory();
+  static Future<File> createCsvFile(String fileName, String content, {String? targetDirectory}) async {
+    final dir = targetDirectory != null ? Directory(targetDirectory) : await _getStorageDirectory();
+    if (!await dir.exists()) {
+      await dir.create(recursive: true);
+    }
     final file = File('${dir.path}/$fileName.csv');
     return file.writeAsString(content, flush: true);
   }
 
-  static Future<File> createWordFile(String fileName, String htmlContent) async {
-    final dir = await _getStorageDirectory();
+  static Future<File> createWordFile(String fileName, String htmlContent, {String? targetDirectory}) async {
+    final dir = targetDirectory != null ? Directory(targetDirectory) : await _getStorageDirectory();
+    if (!await dir.exists()) {
+      await dir.create(recursive: true);
+    }
     final file = File('${dir.path}/$fileName.doc');
     return file.writeAsString(htmlContent, flush: true);
   }

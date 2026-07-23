@@ -51,7 +51,10 @@ class AuthProvider with ChangeNotifier {
   if (e.response?.statusCode == 401) {
     _error = 'Contraseña incorrecta';
   } else {
-    _error = e.response?.data['error'] ?? 'Error de conexión';
+    final message = e.response?.data is Map
+        ? e.response?.data['error'] ?? 'No se pudo conectar con la API'
+        : 'No se pudo conectar con la API';
+    _error = message;
   }
 }
 

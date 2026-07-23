@@ -35,7 +35,6 @@ void main() {
 
 class MyApp extends StatelessWidget {
   MyApp({super.key});
-
   final _router = GoRouter(
     initialLocation: '/welcome',
     redirect: (context, state) {
@@ -98,7 +97,7 @@ class MyApp extends StatelessWidget {
       return ReportePacienteDetalleScreen(pacienteId: id);
     }),  ],
 );
-
+  
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
